@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مملكة الحيوانات: رحلة الاستكشاف الطبيعي</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="game-container">
+        
+        <!-- 1. شاشة البداية وتسجيل الاسم -->
+        <div id="welcome-screen" class="screen" role="region" aria-label="شاشة الترحيب">
+            <div class="logo-icon" aria-hidden="true">🌿🦁</div>
+            <h1 id="welcome-title">مملكة الحيوانات</h1>
+            <p class="subtitle">رحلة تفاعلية استكشافية في عالم العلوم الطبيعية (برمائيات، ثدييات، زواحف)</p>
+            
+            <div class="input-group">
+                <label for="player-name" class="sr-only">اسم اللاعب</label>
+                <input type="text" id="player-name" placeholder="أدخل اسمك الكريم لاستكشاف المملكة..." autocomplete="off">
+            </div>
+            
+            <button class="btn" id="start-btn">ابدأ المغامرة 🚀</button>
+        </div>
+
+        <!-- 2. شاشة الأسئلة واللعبة -->
+        <div id="game-screen" class="screen hidden" style="align-items: stretch;" role="main" aria-live="polite">
+            <header class="game-header">
+                <span class="stats-badge" id="display-player">المستكشف</span>
+                <span class="stats-badge">النقاط: <strong id="score">0</strong></span>
+            </header>
+
+            <div class="progress-bar-container" aria-hidden="false" aria-label="شريط تقدم اللعب">
+                <div id="progress-bar" class="progress-bar" style="width:0%"></div>
+            </div>
+
+            <div class="question-meta">
+                <span id="category-tag" class="tag">التصنيف</span>
+                <span id="timer" class="timer" aria-live="assertive">⏱️ 30 ثانية</span>
+            </div>
+
+            <h2 id="question-text" class="question-text">نص السؤال هنا...</h2>
+
+            <div id="options-container" class="options-grid" role="list" aria-label="خيارات الإجابة">
+                <!-- توليد الخيارات برمجياً -->
+            </div>
+
+            <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+
+            <button id="next-btn" class="btn hidden">السؤال التالي ➔</button>
+        </div>
+
+        <!-- 3. شاشة النهاية والنتائج -->
+        <div id="end-screen" class="screen hidden" role="region" aria-label="شاشة النتائج">
+            <div class="badge-icon" id="result-badge" aria-hidden="true">🏆</div>
+            <h1 id="end-title">تهانينا البطل!</h1>
+            <p class="score-summary" id="final-score-text">لقد أنهيت التحدي بنجاح.</p>
+            <button class="btn" id="restart-btn">إعادة اللعب 🔄</button>
+        </div>
+
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
