@@ -1,290 +1,168 @@
-// app.js - نسخة محسّنة مع إصلاحات الوصول، المؤقت، والشريط
+// app.js - نظام أسئلة متقدم: مستويات، تلميحات، مؤثرات، لوحة متصدرين
 
-const questions = [
-    {
-        level: "المستكشفون الصغار",
-        category: "🐸 البرمائيات",
-        question: "أبدأ حياتي في الماء بذيل وأتنفس بالغلاصم (الخياشيم)، وعندما أُصبح كبيراً أعيش على اليابة وأتنفس بالرئتين.. فمن أنا؟",
-        options: ["الضفدع", "الثعبان", "الأسد", "السمكة"],
-        answer: 0,
-        explanation: "إجابة موفقة! الضفدع يمر بتحول كامل من حياة مائية إلى برمائية."
-    },
-    {
-        level: "المستكشفون الصغار",
-        category: "🐾 الثدييات",
-        question: "أي من هذه الحيوانات يُعتبر من الثدييات ويتميز بتغطية جسمه بالشعر أو الفرو ويرضع صغاره الحليب؟",
-        options: ["السلحفاة", "القطة", "الصقر", "التمساح"],
-        answer: 1,
-        explanation: "صحيح تماماً! القطة حيوان ثديي يلد ولا يبيض ويرضع صغاره."
-    },
-    {
-        level: "علماء الطبيعة الشباب",
-        category: "🦎 الزواحف",
-        question: "لماذا تُصنف السحالي والأفاعي ضمن الكائنات (متغيرة الحرارة)؟",
-        options: [
-            "لأنها تعيش في الأقطاب المتجمدة فقط",
-            "لأن درجة حرارة أجسامها تتغير تبعاً لدرجة حرارة البيئة المحيطة",
-            "لأنها تنتج حرارة ذاتية عالية جداً",
-            "لأنها لا تتعرض لأشعة الشمس قط"
-        ],
-        answer: 1,
-        explanation: "رائع! الزواحف تعتمد على مصدر حراري خارجي (مثل الشمس) لتدفئة أجسامها."
-    },
-    {
-        level: "علماء الطبيعة الشباب",
-        category: "🥚 تكاثر الحيوانات",
-        question: "هل توجد أي حيوانات تُصنف ضمن (الثدييات) ولكنها تبيض بدلاً من أن تلد؟",
-        options: [
-            "لا، جميع الثدييات تلد قطعا",
-            "نعم، مثل خلد الماء (المنقوش) وناكل النمل الشوكي",
-            "نعم، جميع الحيتان تبيض",
-            "لا توجد ثدييات تبيض إلا في الخيال"
-        ],
-        answer: 1,
-        explanation: "معلومة متقدمة دقيقة! حيوان خلد الماء (Platypus) يعتبر من الثدييات الفريدة التي تضع بيضاً."
-    },
-    {
-        level: "خبراء النظم البيئية",
-        category: "🌿 التكيف والبيئة",
-        question: "لماذا تُعد البرمائيات (مؤشراً حيوياً مبكراً) للتلوث البيئي في المسطحات المائية؟",
-        options: [
-            "لأنها تمشي بسرعة فائقة وتهرب من التلوث",
-            "لأن جلودها الرطبة والنفاذة تمتص الملوثات والمواد السامة بسرعة",
-            "لأنها لا تتأثر نهائياً بالمواد الكيميائية",
-            "لأنها تتكاثر فقط في المياه الملوثة"
-        ],
-        answer: 1,
-        explanation: "إجابة الخبراء! نفاذية جلد البرمائيات تجعلها حساسة للغاية لأقل تغيير في جودة البيئة."
-    }
-];
-
+const DATA_URL = 'questions.json';
+let questions = [];
 let state = {
-    playerName: "",
-    currentQuestionIndex: 0,
-    score: 0,
-    timer: null,
-    timeLeft: 30
+  playerName: '',
+  levelKey: '',
+  current: 0,
+  score: 0,
+  timer: null,
+  timeLeft: 30,
+  usedHint: false,
+  modePractice: false
 };
 
 // عناصر DOM
-const welcomeScreen = document.getElementById('welcome-screen');
-const gameScreen = document.getElementById('game-screen');
-const endScreen = document.getElementById('end-screen');
-const startBtn = document.getElementById('start-btn');
-const restartBtn = document.getElementById('restart-btn');
-const nameInput = document.getElementById('player-name');
-const displayPlayer = document.getElementById('display-player');
-const scoreEl = document.getElementById('score');
-const categoryTag = document.getElementById('category-tag');
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const feedbackEl = document.getElementById('feedback');
-const nextBtn = document.getElementById('next-btn');
-const progressBar = document.getElementById('progress-bar');
-const timerEl = document.getElementById('timer');
-const resultBadge = document.getElementById('result-badge');
-const endTitle = document.getElementById('end-title');
-const finalScoreText = document.getElementById('final-score-text');
+const el = {
+  welcome: document.getElementById('welcome-screen'),
+  game: document.getElementById('game-screen'),
+  end: document.getElementById('end-screen'),
+  startBtn: document.getElementById('start-btn'),
+  practiceBtn: document.getElementById('practice-btn'),
+  nameInput: document.getElementById('player-name'),
+  levelSelect: document.getElementById('level-select'),
+  displayPlayer: document.getElementById('display-player'),
+  score: document.getElementById('score'),
+  questionText: document.getElementById('question-text'),
+  optionsContainer: document.getElementById('options-container'),
+  progressBar: document.getElementById('progress-bar'),
+  levelBadge: document.getElementById('level-badge'),
+  timeLeft: document.getElementById('time-left'),
+  timerEl: document.getElementById('timer'),
+  hintBtn: document.getElementById('hint-btn'),
+  hintText: document.getElementById('hint-text'),
+  feedback: document.getElementById('feedback'),
+  nextBtn: document.getElementById('next-btn'),
+  quitBtn: document.getElementById('quit-btn'),
+  endTitle: document.getElementById('end-title'),
+  finalScore: document.getElementById('final-score'),
+  leaderboard: document.getElementById('leaderboard'),
+  playAgain: document.getElementById('play-again'),
+  backHome: document.getElementById('back-home'),
+  shareBtn: document.getElementById('btn-share'),
+  printCert: document.getElementById('print-cert'),
+  shareResult: document.getElementById('share-result')
+};
+
+// تحميل البيانات
+async function loadData(){
+  try{
+    const res = await fetch(DATA_URL);
+    questions = await res.json();
+    initLevels();
+  }catch(e){
+    console.error('Failed load questions',e);
+  }
+}
+
+function initLevels(){
+  // استخرج المستويات الفريدة من الأسئلة
+  const levels = Array.from(new Set(questions.map(q=>q.level)));
+  el.levelSelect.innerHTML = '';
+  levels.forEach(l=>{
+    const opt = document.createElement('option'); opt.value = l; opt.innerText = l;
+    el.levelSelect.appendChild(opt);
+  });
+}
 
 // أحداث
-startBtn.addEventListener('click', startGame);
-restartBtn.addEventListener('click', restartGame);
-nextBtn.addEventListener('click', nextQuestion);
+el.startBtn.addEventListener('click', ()=>startGame(false));
+el.practiceBtn.addEventListener('click', ()=>startGame(true));
+el.hintBtn.addEventListener('click', useHint);
+el.nextBtn.addEventListener('click', nextQuestion);
+el.quitBtn.addEventListener('click', ()=>{ if(confirm('هل تريد الخروج؟ سيفقد تقدم هذه الجولة.')) showWelcome(); });
+el.playAgain.addEventListener('click', ()=>{ showWelcome(); });
+el.backHome.addEventListener('click', ()=>{ showWelcome(); });
+el.shareBtn.addEventListener('click', shareApp);
+el.printCert.addEventListener('click', printCertificate);
+el.shareResult.addEventListener('click', shareResult);
 
-// دعم Enter للبدء
-nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') startGame(); });
+function startGame(practice=false){
+  const name = el.nameInput.value.trim() || 'مستكشف';
+  state.playerName = name; state.modePractice = practice;
+  el.displayPlayer.innerText = `👤 ${state.playerName}`;
+  localStorage.setItem('playerName', state.playerName);
 
-// تحميل الاسم المحفوظ (تجربة مستخدم أفضل)
-if (localStorage.getItem('playerName')) {
-    nameInput.value = localStorage.getItem('playerName');
+  state.levelKey = el.levelSelect.value;
+  state.current = 0; state.score = 0; state.usedHint = false;
+
+  // اختر أسئلة هذا المستوى واختر تشكيلة عشوائية
+  state.pool = questions.filter(q=>q.level===state.levelKey);
+  shuffle(state.pool);
+  if(!state.pool.length){ alert('لا توجد أسئلة لهذا المستوى'); return; }
+
+  el.score.innerText = state.score;
+  el.levelBadge.innerText = state.levelKey;
+
+  showGame();
+  loadQuestion();
 }
 
-function startGame() {
-    const name = nameInput.value.trim();
-    if (!name) {
-        alert('لطفاً، أدخل اسمك لبدء المغامرة!');
-        nameInput.focus();
-        return;
-    }
-    state.playerName = name;
-    localStorage.setItem('playerName', name);
-    displayPlayer.innerText = `👤 ${state.playerName}`;
+function showWelcome(){ el.welcome.classList.remove('hidden'); el.game.classList.add('hidden'); el.end.classList.add('hidden'); }
+function showGame(){ el.welcome.classList.add('hidden'); el.game.classList.remove('hidden'); el.end.classList.add('hidden'); }
+function showEnd(){ el.welcome.classList.add('hidden'); el.game.classList.add('hidden'); el.end.classList.remove('hidden'); }
 
-    welcomeScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
-    endScreen.classList.add('hidden');
+function loadQuestion(){
+  clearTimer(); el.hintText.classList.add('hidden'); el.hintText.innerText=''; el.hintBtn.disabled=false; el.feedback.classList.add('hidden'); el.nextBtn.classList.add('hidden');
+  const q = state.pool[state.current];
+  el.questionText.innerText = q.question;
+  el.optionsContainer.innerHTML='';
+  if(q.image){ const img = document.createElement('div'); img.className='question-image'; img.innerText=q.image; el.optionsContainer.appendChild(img);} // using emoji or text image
 
-    state.currentQuestionIndex = 0;
-    state.score = 0;
-    updateScore();
+  q.options.forEach((opt,i)=>{
+    const b = document.createElement('button'); b.className='option-btn'; b.innerText = opt; b.onclick = ()=>selectAnswer(i,b); el.optionsContainer.appendChild(b);
+  });
 
-    loadQuestion();
+  updateProgress();
+  startTimer(q.time || 30);
 }
 
-function loadQuestion() {
-    // تأكد من تنظيف أي مؤقت سابق
-    clearTimer();
-
-    const q = questions[state.currentQuestionIndex];
-
-    // تحديث شريط التقدم (تصحيح الحساب بتضمين السؤال الحالي)
-    const progressPercent = ((state.currentQuestionIndex + 1) / questions.length) * 100;
-    progressBar.style.width = `${progressPercent}%`;
-
-    categoryTag.innerText = q.category;
-    questionText.innerText = q.question;
-
-    // توليد الخيارات مع دعم لوحة المفاتيح وسمات الوصول
-    optionsContainer.innerHTML = '';
-
-    q.options.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.type = 'button';
-        btn.innerText = option;
-        btn.setAttribute('data-index', index);
-        btn.setAttribute('aria-pressed', 'false');
-        btn.tabIndex = 0;
-
-        btn.addEventListener('click', () => selectAnswer(index, btn));
-        btn.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                selectAnswer(index, btn);
-            }
-        });
-
-        optionsContainer.appendChild(btn);
-    });
-
-    // إخفاء التالي والتغذية الراجعة
-    nextBtn.classList.add('hidden');
-    feedbackEl.classList.add('hidden');
-
-    // بدء المؤقت
-    resetTimer();
-
-    // وضع الفوكس على أول خيار لسهولة الوصول
-    const firstOption = optionsContainer.querySelector('.option-btn');
-    if (firstOption) firstOption.focus();
+function updateProgress(){
+  const pct = Math.round(((state.current)/state.pool.length)*100);
+  el.progressBar.style.width = pct + '%';
 }
 
-function resetTimer() {
-    clearTimer();
-    state.timeLeft = 30;
-    timerEl.innerText = `⏱️ ${state.timeLeft} ثانية`;
+function startTimer(seconds){ state.timeLeft = seconds; el.timeLeft.innerText = state.timeLeft; clearTimer(); state.timer = setInterval(()=>{ state.timeLeft--; el.timeLeft.innerText = state.timeLeft; if(state.timeLeft<=0){ clearTimer(); handleTimeout(); } },1000); }
+function clearTimer(){ if(state.timer){ clearInterval(state.timer); state.timer=null; } }
 
-    state.timer = setInterval(() => {
-        state.timeLeft--;
-        timerEl.innerText = `⏱️ ${state.timeLeft} ثانية`;
-        if (state.timeLeft <= 0) {
-            clearTimer();
-            handleTimeOut();
-        }
-    }, 1000);
+function handleTimeout(){ const q=state.pool[state.current]; revealCorrect(); showFeedback('انتهى الوقت!','incorrect'); el.nextBtn.classList.remove('hidden'); }
+
+function selectAnswer(idx, btn){ clearTimer(); const q=state.pool[state.current]; const buttons = document.querySelectorAll('.option-btn'); buttons.forEach(b=>b.disabled=true);
+  if(idx===q.answer){ btn.classList.add('correct'); state.score+=q.points||10; el.score.innerText = state.score; showConfetti(); playSound('success'); showFeedback('إجابة صحيحة!','correct'); } else { btn.classList.add('incorrect'); revealCorrect(); playSound('fail'); showFeedback('إجابة خاطئة','incorrect'); }
+  el.nextBtn.classList.remove('hidden');
 }
 
-function clearTimer() {
-    if (state.timer) {
-        clearInterval(state.timer);
-        state.timer = null;
-    }
-}
+function revealCorrect(){ const q=state.pool[state.current]; const buttons = document.querySelectorAll('.option-btn'); if(buttons[q.answer]) buttons[q.answer].classList.add('correct'); }
 
-function handleTimeOut() {
-    const q = questions[state.currentQuestionIndex];
-    const buttons = optionsContainer.querySelectorAll('.option-btn');
-    buttons.forEach(btn => btn.disabled = true);
-    const correctBtn = buttons[q.answer];
-    if (correctBtn) correctBtn.classList.add('correct');
+function nextQuestion(){ state.current++; if(state.current<state.pool.length){ loadQuestion(); } else { finishGame(); } }
 
-    showFeedback(`انتهى الوقت! ⌛ ${q.explanation}`, false);
-    nextBtn.classList.remove('hidden');
-    nextBtn.focus();
-}
+function finishGame(){ clearTimer(); el.finalScore.innerText = state.score; updateLeaderboard(state.playerName,state.score,state.levelKey); showEnd(); }
 
-function selectAnswer(selectedIndex, selectedBtn) {
-    clearTimer();
+function useHint(){ if(state.usedHint) return; const q=state.pool[state.current]; if(q.hint){ state.score = Math.max(0,state.score-5); el.score.innerText = state.score; el.hintText.innerText = q.hint; el.hintText.classList.remove('hidden'); state.usedHint=true; el.hintBtn.disabled=true; } else { alert('لا يوجد تلميح لهذا السؤال'); } }
 
-    const q = questions[state.currentQuestionIndex];
-    const buttons = optionsContainer.querySelectorAll('.option-btn');
+function showFeedback(text,type){ el.feedback.innerText = text; el.feedback.className = `feedback ${type==='correct'?'correct-feedback':'incorrect-feedback'}`; el.feedback.classList.remove('hidden'); }
 
-    buttons.forEach(btn => btn.disabled = true);
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
 
-    if (selectedIndex === q.answer) {
-        selectedBtn.classList.add('correct');
-        state.score += 20; // 20 نقطة لكل سؤال صحيح
-        updateScore();
-        showFeedback(`إجابة صحيحة وبطلة! 🎉 ${q.explanation}`, true);
-    } else {
-        selectedBtn.classList.add('incorrect');
-        const correctBtn = buttons[q.answer];
-        if (correctBtn) correctBtn.classList.add('correct');
-        showFeedback(`إجابة خاطئة! ❌ ${q.explanation}`, false);
-    }
+// Leaderboard (local)
+function updateLeaderboard(name,score,level){ const key='mh_leaderboard'; const history = JSON.parse(localStorage.getItem(key)||'[]'); history.push({name,score,level,date:new Date().toISOString()}); history.sort((a,b)=>b.score-a.score); localStorage.setItem(key,JSON.stringify(history)); renderLeaderboard(); }
+function renderLeaderboard(){ const key='mh_leaderboard'; const history = JSON.parse(localStorage.getItem(key)||'[]'); el.leaderboard.innerHTML=''; if(history.length===0){ const li=document.createElement('li'); li.innerText='لا توجد نتائج بعد'; el.leaderboard.appendChild(li); return; } history.slice(0,10).forEach(h=>{ const li=document.createElement('li'); const d=new Date(h.date); li.innerText = `${h.name} — ${h.score} نقطة — ${h.level} (${d.toLocaleDateString()})`; el.leaderboard.appendChild(li); }); }
 
-    nextBtn.classList.remove('hidden');
-    nextBtn.focus();
-}
+// confetti
+function showConfetti(){ try{ confetti({particleCount:60,spread:70,origin:{y:0.6}}); }catch(e){} }
 
-function showFeedback(text, isCorrect) {
-    feedbackEl.innerText = text;
-    feedbackEl.className = `feedback ${isCorrect ? 'correct-feedback' : 'incorrect-feedback'}`;
-    feedbackEl.classList.remove('hidden');
-}
+// sounds
+const audio = { success:new Audio(), fail:new Audio() };
+function initSounds(){ try{ audio.success.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='; audio.fail.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='; }catch(e){} }
+function playSound(k){ try{ if(audio[k]) audio[k].play(); }catch(e){} }
 
-function nextQuestion() {
-    state.currentQuestionIndex++;
-    if (state.currentQuestionIndex < questions.length) {
-        loadQuestion();
-    } else {
-        showEndScreen();
-    }
-}
+// share
+function shareApp(){ const url = location.href; if(navigator.share){ navigator.share({title:'مملكة الحيوان��ت',text:'جرب هذه اللعبة التعليمية!',url}); } else { prompt('انسخ الرابط وشاركه مع أصدقائك:',url); } }
+function shareResult(){ const text = `لقد حصلت على ${state.score} نقطة في مملكة الحيوانات!`; if(navigator.share){ navigator.share({title:'نتيجتي في مملكة الحيوانات',text,url:location.href}); } else { const wa = `https://wa.me/?text=${encodeURIComponent(text+' '+location.href)}`; window.open(wa,'_blank'); } }
 
-function updateScore() {
-    scoreEl.innerText = state.score;
-}
+// certificate
+function printCertificate(){ const win = window.open('','_blank'); win.document.write(`<h1>شهادة إتمام</h1><p>المستكشف: ${state.playerName}</p><p>المجموع: ${state.score}</p>`); win.print(); win.close(); }
 
-function showEndScreen() {
-    clearTimer();
-    gameScreen.classList.add('hidden');
-    endScreen.classList.remove('hidden');
-
-    if (state.score >= 80) {
-        resultBadge.innerText = '🌟🏆';
-        endTitle.innerText = `هنيئاً لك يا ${state.playerName}!`;
-        finalScoreText.innerHTML = `أنت خبير حقيقي في العلوم الطبيعية وعالم الحيوان!<br>مجموع نقاطك: <strong>${state.score} / 100</strong>`;
-    } else if (state.score >= 40) {
-        resultBadge.innerText = '🥈📘';
-        endTitle.innerText = `عمل رائع يا ${state.playerName}!`;
-        finalScoreText.innerHTML = `لديك معلومات ممتازة وتحتاج لمراجعة بسيطة لتكون خبيراً مطلقاً.<br>مجموع نقاطك: <strong>${state.score} / 100</strong>`;
-    } else {
-        resultBadge.innerText = '🌱💡';
-        endTitle.innerText = `حاول مرة أخرى يا ${state.playerName}!`;
-        finalScoreText.innerHTML = `المملكة مليئة بالأسرار، جرب التحدي مجدداً لترفع رصيدك المعرفي.<br>مجموع نقاطك: <strong>${state.score} / 100</strong>`;
-    }
-
-    // حفظ نتيجة بسيطة في localStorage (لإمكانية إضافة لوحة لاحقاً)
-    const history = JSON.parse(localStorage.getItem('history') || '[]');
-    history.push({ name: state.playerName, score: state.score, date: new Date().toISOString() });
-    localStorage.setItem('history', JSON.stringify(history));
-}
-
-function restartGame() {
-    clearTimer();
-    state.currentQuestionIndex = 0;
-    state.score = 0;
-    updateScore();
-
-    endScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
-
-    loadQuestion();
-}
-
-// تحسّن: تأمين العرض على إعادة تحميل الصفحة إن كانت اللعبة جارية
-window.addEventListener('beforeunload', () => { clearTimer(); });
-
-// تجربة مستخدم: ضع الفوكس مباشرة على حقل الاسم عند تحميل الصفحة
-window.addEventListener('load', () => { nameInput.focus(); });
+// Utils load saved name
+window.addEventListener('load', ()=>{ initSounds(); loadData().then(()=>{ if(localStorage.getItem('playerName')) el.nameInput.value = localStorage.getItem('playerName'); renderLeaderboard(); }); });

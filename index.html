@@ -1,66 +1,108 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مملكة الحيوانات: رحلة الاستكشاف الطبيعي</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مملكة الحيوانات — مغامرة تعليمية</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
 </head>
 <body>
+  <div class="game-container">
+    <header class="topbar">
+      <div class="logo">🌿🦁 مملكة الحيوانات</div>
+      <div class="controls">
+        <button id="btn-settings" class="icon-btn" title="الإعدادات">⚙️</button>
+        <button id="btn-share" class="icon-btn" title="مشاركة">🔗</button>
+      </div>
+    </header>
 
-    <div class="game-container">
-        
-        <!-- 1. شاشة البداية وتسجيل الاسم -->
-        <div id="welcome-screen" class="screen" role="region" aria-label="شاشة الترحيب">
-            <div class="logo-icon" aria-hidden="true">🌿🦁</div>
-            <h1 id="welcome-title">مملكة الحيوانات</h1>
-            <p class="subtitle">رحلة تفاعلية استكشافية في عالم العلوم الطبيعية (برمائيات، ثدييات، زواحف)</p>
-            
-            <div class="input-group">
-                <label for="player-name" class="sr-only">اسم اللاعب</label>
-                <input type="text" id="player-name" placeholder="أدخل اسمك الكريم لاستكشاف المملكة..." autocomplete="off">
-            </div>
-            
-            <button class="btn" id="start-btn">ابدأ المغامرة 🚀</button>
+    <main id="main-area">
+      <!-- Welcome -->
+      <section id="welcome-screen" class="screen">
+        <div class="welcome-card">
+          <div class="logo-large">🌿🦁</div>
+          <h1>مرحباً بك في مملكة الحيوانات</h1>
+          <p class="subtitle">مغامرة تعليمية لمرحلة ما قبل المدرسة وحتى المتقدمين — تعلم، استكشف، وتحدّ!</p>
+
+          <label for="player-name">اكتب اسمك لتسجيل التقدم:</label>
+          <input id="player-name" type="text" placeholder="اسم المستكشف..." autocomplete="off">
+
+          <div class="select-level">
+            <label for="level-select">اختر مستوى البداية:</label>
+            <select id="level-select"></select>
+          </div>
+
+          <div class="actions-row">
+            <button id="start-btn" class="btn primary">ابدأ المغامرة 🚀</button>
+            <button id="practice-btn" class="btn">وضع التدريب</button>
+          </div>
+
+          <p class="note">يمكنك التدرج بين المستويات وكسب شارات عند الانتصار. كل مستوى يركّز على نوع من الحيوانات.</p>
+        </div>
+      </section>
+
+      <!-- Game -->
+      <section id="game-screen" class="screen hidden">
+        <div class="game-header">
+          <div class="player">👤 <span id="display-player">المستكشف</span></div>
+          <div class="score">نقاط: <strong id="score">0</strong></div>
         </div>
 
-        <!-- 2. شاشة الأسئلة واللعبة -->
-        <div id="game-screen" class="screen hidden" style="align-items: stretch;" role="main" aria-live="polite">
-            <header class="game-header">
-                <span class="stats-badge" id="display-player">المستكشف</span>
-                <span class="stats-badge">النقاط: <strong id="score">0</strong></span>
-            </header>
-
-            <div class="progress-bar-container" aria-hidden="false" aria-label="شريط تقدم اللعب">
-                <div id="progress-bar" class="progress-bar" style="width:0%"></div>
-            </div>
-
-            <div class="question-meta">
-                <span id="category-tag" class="tag">التصنيف</span>
-                <span id="timer" class="timer" aria-live="assertive">⏱️ 30 ثانية</span>
-            </div>
-
-            <h2 id="question-text" class="question-text">نص السؤال هنا...</h2>
-
-            <div id="options-container" class="options-grid" role="list" aria-label="خيارات الإجابة">
-                <!-- توليد الخيارات برمجياً -->
-            </div>
-
-            <div id="feedback" class="feedback hidden" aria-live="polite"></div>
-
-            <button id="next-btn" class="btn hidden">السؤال التالي ➔</button>
+        <div class="progress-row">
+          <div id="level-badge" class="level-badge">المستوى</div>
+          <div class="progress-bar-container" aria-hidden="false">
+            <div id="progress-bar" class="progress-bar" style="width:0%"></div>
+          </div>
+          <div id="timer" class="timer">⏱️ <span id="time-left">30</span>s</div>
         </div>
 
-        <!-- 3. شاشة النهاية والنتائج -->
-        <div id="end-screen" class="screen hidden" role="region" aria-label="شاشة النتائج">
-            <div class="badge-icon" id="result-badge" aria-hidden="true">🏆</div>
-            <h1 id="end-title">تهانينا البطل!</h1>
-            <p class="score-summary" id="final-score-text">لقد أنهيت التحدي بنجاح.</p>
-            <button class="btn" id="restart-btn">إعادة اللعب 🔄</button>
+        <h2 id="question-text" class="question-text">سؤال...</h2>
+        <div id="question-image" class="question-image hidden" aria-hidden="true"></div>
+
+        <div id="options-container" class="options-grid"></div>
+
+        <div class="hint-row">
+          <button id="hint-btn" class="btn small">💡 تلميح (-5 نقاط)</button>
+          <div id="hint-text" class="hint-text hidden"></div>
         </div>
 
-    </div>
+        <div id="feedback" class="feedback hidden"></div>
 
-    <script src="app.js" defer></script>
+        <div class="actions-row">
+          <button id="next-btn" class="btn hidden">التالي ➔</button>
+          <button id="quit-btn" class="btn">الخروج</button>
+        </div>
+
+      </section>
+
+      <!-- End -->
+      <section id="end-screen" class="screen hidden">
+        <div class="end-card">
+          <div id="result-badge" class="badge">🏆</div>
+          <h1 id="end-title">تهانينا!</h1>
+          <p id="final-score-text">مجموع نقاطك: <strong id="final-score">0</strong></p>
+
+          <div class="rewards">
+            <button id="print-cert" class="btn">طباعة الشهادة 🖨️</button>
+            <button id="share-result" class="btn">مشاركة النتيجة 🔗</button>
+          </div>
+
+          <h3>قائمة المتصدرين</h3>
+          <ol id="leaderboard" class="leaderboard"></ol>
+
+          <div class="actions-row">
+            <button id="play-again" class="btn primary">إعادة اللعب</button>
+            <button id="back-home" class="btn">العودة للواجهة</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">© مملكة الحيوانات — تجربة تعليمية تفاعلية</footer>
+  </div>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
